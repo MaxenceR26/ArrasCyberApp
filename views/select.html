@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="../public/assets/img/logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="../public/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../public/assets/css/animate.css">
+    <link rel="stylesheet" href="../public/assets/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="../public/assets/css/all.css">
+    <link rel="stylesheet" href="../public/assets/css/flaticon.css">
+    <link rel="stylesheet" href="../public/assets/css/themify-icons.css">
+    <link rel="stylesheet" href="../public/assets/css/magnific-popup.css">
+    <link rel="stylesheet" href="../public/assets/css/slick.css">
+    <link rel="stylesheet" href="../public/assets/css/style.css">
+
+</head>
+<body>
+<div class="body_bg">
+<section class="pricing_part padding_top" id="pricing_part" style="height: 100vh;">
+    <div class="container">
+        <div class="row justify-content-center" >
+            <div class="col-lg-6">
+                <div class="section_tittle text-center">
+                    <h2>Machines disponibles</h2>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center" id="dataListToken">
+            
+
+            
+        </div>
+    </div>
+</section>
+</div>
+<script src="../public/assets/js/jquery-1.12.1.min.js"></script>
+<script src="../public/assets/js/popper.min.js"></script>
+<script src="../public/assets/js/bootstrap.min.js"></script>
+<script src="../public/assets/js/jquery.magnific-popup.js"></script>
+<script src="../public/assets/js/swiper.min.js"></script>
+<script src="../public/assets/js/masonry.pkgd.js"></script>
+<script src="../public/assets/js/owl.carousel.min.js"></script>
+<script src="../public/assets/js/jquery.nice-select.min.js"></script>
+<script src="../public/assets/js/slick.min.js"></script>
+<script src="../public/assets/js/jquery.counterup.min.js"></script>
+<script src="../public/assets/js/waypoints.min.js"></script>
+<script src="../public/assets/js/contact.js"></script>
+<script src="../public/assets/js/jquery.ajaxchimp.min.js"></script>
+<script src="../public/assets/js/jquery.form.js"></script>
+<script src="../public/assets/js/jquery.validate.min.js"></script>
+<script src="../public/assets/js/mail-script.js"></script>
+<script src="../public/assets/js/custom.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Récupérer les tokens depuis le localStorage
+        const storedTokens = localStorage.getItem('tokens');
+        const dataListToken = document.getElementById('dataListToken');
+        
+        // Si des tokens sont présents dans localStorage, les afficher
+        if (storedTokens) {
+            const tokens = JSON.parse(storedTokens);  // Convertir les tokens stockés en JSON en tableau
+    
+            if (tokens && tokens.length > 0) {
+                dataListToken.innerHTML = ''; // Vider la liste avant d'ajouter les nouveaux tokens
+    
+                tokens.forEach(([token, machineName]) => {
+                    const tokenElement = document.createElement('div');
+                    tokenElement.classList.add('col-lg-3', 'col-sm-4', 'mb-4');
+                    tokenElement.innerHTML = `
+                        <div class="single_pricing_part h-100">
+                            <h4>${machineName}</h4>
+                            <p style="font-weight:normal; font-size:12px">${token.substring(0, 10)}********</p> <!-- Affiche le token -->
+                            <a href="#" class="btn_2">Démarrer</a>
+                        </div>
+                    `;
+    
+                    // Ajouter le nouvel élément à la div dataListToken
+                    dataListToken.appendChild(tokenElement);
+                });
+            } else {
+                // Si aucun token n'est trouvé, afficher un message
+                const noTokenElement = document.createElement('p');
+                noTokenElement.textContent = "Aucun token trouvé.";
+                dataListToken.appendChild(noTokenElement);
+            }
+        } else {
+            console.log('Aucun token trouvé dans localStorage.');
+        }
+    });
+    </script>
+    
+
+</body>
+</html>

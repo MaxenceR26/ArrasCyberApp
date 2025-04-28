@@ -1,0 +1,16 @@
+const { contextBridge, ipcRenderer } = require('electron');
+
+// Exposer des méthodes sécurisées au renderer process
+contextBridge.exposeInMainWorld('electron', {
+    // Méthode pour envoyer des informations de connexion au main process
+    login: (username, password) => ipcRenderer.send('login-attempt', { username, password }),
+    
+    // Méthode pour recevoir la réponse du main process
+    onLoginResponse: (callback) => ipcRenderer.on('login-response', callback),
+
+    // Méthode pour récuperer les tokens
+    recoverToken: (usernameId) => ipcRenderer.send('recover-token', { usernameId }),
+
+    // Méthode pour recevoir les tokens
+    onTokenResponse: (callback) => ipcRenderer.on('token-response', callback),
+});
