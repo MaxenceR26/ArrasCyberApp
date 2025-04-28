@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machines Disponibles</title>
     <link rel="shortcut icon" href="../public/assets/img/logo.png" type="image/x-icon">
     <link rel="stylesheet" href="../public/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="../public/assets/css/animate.css">
@@ -13,27 +14,46 @@
     <link rel="stylesheet" href="../public/assets/css/magnific-popup.css">
     <link rel="stylesheet" href="../public/assets/css/slick.css">
     <link rel="stylesheet" href="../public/assets/css/style.css">
-
 </head>
 <body>
+
 <div class="body_bg">
-<section class="pricing_part padding_top" id="pricing_part" style="height: 100vh;">
-    <div class="container">
-        <div class="row justify-content-center" >
-            <div class="col-lg-6">
-                <div class="section_tittle text-center">
-                    <h2>Machines disponibles</h2>
+    <section class="pricing_part padding_top" id="pricing_part" style="height: 100vh;">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="section_tittle text-center">
+                        <h2>Machines disponibles</h2>
+                    </div>
                 </div>
             </div>
+            <div class="row justify-content-center" id="dataListToken"></div>
         </div>
-        <div class="row justify-content-center" id="dataListToken">
-            
-
-            
-        </div>
-    </div>
-</section>
+    </section>
 </div>
+
+<!-- Modal pour demander le token -->
+<div class="modal fade" id="tokenModal" tabindex="-1" role="dialog" aria-labelledby="tokenModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="tokenModalLabel">Entrez votre token</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="userTokenInput" class="form-control" placeholder="Votre token complet">
+        <small id="errorText" class="form-text text-danger" style="display:none;">Token incorrect. Veuillez réessayer.</small>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-danger" id="validateTokenBtn">Valider</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="../public/assets/js/jquery-1.12.1.min.js"></script>
 <script src="../public/assets/js/popper.min.js"></script>
 <script src="../public/assets/js/bootstrap.min.js"></script>
@@ -51,45 +71,92 @@
 <script src="../public/assets/js/jquery.validate.min.js"></script>
 <script src="../public/assets/js/mail-script.js"></script>
 <script src="../public/assets/js/custom.js"></script>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Récupérer les tokens depuis le localStorage
-        const storedTokens = localStorage.getItem('tokens');
-        const dataListToken = document.getElementById('dataListToken');
-        
-        // Si des tokens sont présents dans localStorage, les afficher
-        if (storedTokens) {
-            const tokens = JSON.parse(storedTokens);  // Convertir les tokens stockés en JSON en tableau
-    
-            if (tokens && tokens.length > 0) {
-                dataListToken.innerHTML = ''; // Vider la liste avant d'ajouter les nouveaux tokens
-    
-                tokens.forEach(([token, machineName]) => {
-                    const tokenElement = document.createElement('div');
-                    tokenElement.classList.add('col-lg-3', 'col-sm-4', 'mb-4');
-                    tokenElement.innerHTML = `
-                        <div class="single_pricing_part h-100">
-                            <h4>${machineName}</h4>
-                            <p style="font-weight:normal; font-size:12px">${token.substring(0, 10)}********</p> <!-- Affiche le token -->
-                            <a href="#" class="btn_2">Démarrer</a>
-                        </div>
-                    `;
-    
-                    // Ajouter le nouvel élément à la div dataListToken
-                    dataListToken.appendChild(tokenElement);
+document.addEventListener('DOMContentLoaded', function() {
+    const storedTokens = localStorage.getItem('tokens');
+    const dataListToken = document.getElementById('dataListToken');
+
+    let currentExpectedToken = '';
+    let currentMachineName = '';
+    let currentMachineId = '';
+    let currentEndTime = '';
+
+    if (storedTokens) {
+        const tokens = JSON.parse(storedTokens);
+
+        if (tokens && tokens.length > 0) {
+            dataListToken.innerHTML = '';
+
+            tokens.forEach(([token, machineName, machineId, endTime]) => {
+                const tokenElement = document.createElement('div');
+                tokenElement.classList.add('col-lg-3', 'col-sm-4', 'mb-4');
+                tokenElement.id = `machine-${machineId}`;
+
+                let countdown = 30;
+                if (endTime && endTime > Date.now()) {
+                    countdown = Math.floor((endTime - Date.now()) / 1000);
+                }
+
+                tokenElement.innerHTML = `
+                    <div class="single_pricing_part h-100">
+                        <h4>${machineName}</h4>
+                        <p style="font-weight:normal; font-size:12px">${token.substring(0, 10)}********</p>
+                        <a href="#" class="btn_2" 
+                           data-token="${token}" 
+                           data-machine-name="${machineName}" 
+                           data-machine-id="${machineId}" 
+                           data-end-time="${endTime}">
+                           Démarrer dans ${countdown}s
+                        </a>
+                    </div>
+                `;
+
+                dataListToken.appendChild(tokenElement);
+
+                const startButton = tokenElement.querySelector('.btn_2');
+                startButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    currentExpectedToken = startButton.getAttribute('data-token');
+                    currentMachineName = startButton.getAttribute('data-machine-name');
+                    currentMachineId = startButton.getAttribute('data-machine-id');
+                    currentEndTime = startButton.getAttribute('data-end-time');
+
+                    document.getElementById('userTokenInput').value = '';
+                    document.getElementById('errorText').style.display = 'none';
+                    $('#tokenModal').modal('show');
                 });
-            } else {
-                // Si aucun token n'est trouvé, afficher un message
-                const noTokenElement = document.createElement('p');
-                noTokenElement.textContent = "Aucun token trouvé.";
-                dataListToken.appendChild(noTokenElement);
-            }
+            });
         } else {
-            console.log('Aucun token trouvé dans localStorage.');
+            const noTokenElement = document.createElement('p');
+            noTokenElement.textContent = "Aucun token trouvé.";
+            dataListToken.appendChild(noTokenElement);
+        }
+    } else {
+        console.log('Aucun token trouvé dans localStorage.');
+    }
+
+    document.getElementById('validateTokenBtn').addEventListener('click', function() {
+        const userToken = document.getElementById('userTokenInput').value.trim();
+
+        if (userToken === currentExpectedToken) {
+            $('#tokenModal').modal('hide');
+            const timerData = {
+                token: currentExpectedToken,
+                machineName: currentMachineName,
+                machineId: currentMachineId,
+                endTime: Date.now() + 30 * 1000
+            };
+            localStorage.setItem('currentMachine', JSON.stringify(timerData));
+
+            window.location.href = 'compteur.html';
+        } else {
+            document.getElementById('errorText').style.display = 'block';
         }
     });
-    </script>
-    
+});
+</script>
 
 </body>
 </html>

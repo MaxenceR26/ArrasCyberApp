@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compteur</title>
+    <link rel="shortcut icon" href="../public/assets/img/logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="../public/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../public/assets/css/animate.css">
+    <link rel="stylesheet" href="../public/assets/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="../public/assets/css/all.css">
+    <link rel="stylesheet" href="../public/assets/css/flaticon.css">
+    <link rel="stylesheet" href="../public/assets/css/themify-icons.css">
+    <link rel="stylesheet" href="../public/assets/css/magnific-popup.css">
+    <link rel="stylesheet" href="../public/assets/css/slick.css">
+    <link rel="stylesheet" href="../public/assets/css/style.css">
+</head>
+<body>
+    <div class="body_bg">
+        <section class="pricing_part padding_top" id="pricing_part" style="height: 100vh;">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6">
+                        <div class="section_tittle text-center">
+                            <h1 id="machineName"></h1>
+                            <h2>Temps restant: <span id="timer" class="timer"></span> secondes</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="row justify-content-center" id="dataListToken"></div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentMachine = JSON.parse(localStorage.getItem('currentMachine'));
+        
+            if (!currentMachine) {
+                window.location.href = 'index.html'; // Pas de machine en cours ? Retour.
+                return;
+            }
+        
+            const machineName = currentMachine.machineName;
+            const token = currentMachine.token;
+            const endTime = currentMachine.endTime;
+        
+            document.getElementById('machineName').textContent = machineName;
+        
+            function updateTimer() {
+                const now = Date.now();
+                let countdown = Math.floor((endTime - now) / 1000);
+        
+                if (countdown <= 0) {
+                    document.getElementById('timer').textContent = "0";
+                    clearInterval(timerInterval);
+        
+                    // Appel Electron pour récupérer et supprimer
+                    if (window.electron && typeof window.electron.removeTokenAndUpdateMachine === "function") {
+                        window.electron.removeTokenAndUpdateMachine(token, machineName);
+                    }
+        
+                    // Nettoyer localStorage
+                    localStorage.removeItem('currentMachine');
+        
+                    // Message et redirection
+                    window.location.href = 'select.html';
+                } else {
+                    document.getElementById('timer').textContent = countdown;
+                }
+            }
+        
+            // Check immédiatement à l'ouverture
+            updateTimer();
+            const timerInterval = setInterval(updateTimer, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const connection = mysql.createConnection({
   host: '127.0.0.1',
   user: 'root',
-  password: 'root',
+  password: '',
   database: 'app'
 });
 
@@ -100,5 +100,27 @@ ipcMain.on('recover-token', (event, { usernameId }) => {
     } else {
       event.reply('token-response', []); // Aucun token trouvé
     }
+  });
+});
+
+ipcMain.on('remove-token-and-update-machine', (event, { token, machineId }) => {
+  // Supprimer le token de la table 'token'
+  const deleteTokenQuery = 'DELETE FROM token WHERE token = ?';
+  connection.query(deleteTokenQuery, [token], (err, result) => {
+    if (err) {
+      console.error('Erreur lors de la suppression du token: ' + err.stack);
+      return;
+    }
+    console.log('Token supprimé avec succès');
+
+    // Mettre à jour l'état de la machine dans la table 'machines'
+    const updateMachineQuery = 'UPDATE machines SET state = 0 WHERE name = ?';
+    connection.query(updateMachineQuery, [machineId], (err, result) => {
+      if (err) {
+        console.error('Erreur lors de la mise à jour de l\'état de la machine: ' + err.stack);
+        return;
+      }
+      console.log('État de la machine mis à jour avec succès' + machineId);
+    });
   });
 });
